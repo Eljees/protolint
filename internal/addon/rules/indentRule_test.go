@@ -229,6 +229,56 @@ Fix https://github.com/yoheimuta/protolint/issues/139`,
 			},
 		},
 		{
+			name: `judge a line that starts with a comment attached to its element by the line's indentation.
+Fix https://github.com/yoheimuta/protolint/issues/409`,
+			inputProtoPath: setting_test.TestDataPath("rules", "indentrule", "incorrect_issue_409.proto"),
+			wantFailures: []report.Failure{
+				report.Failuref(
+					meta.Position{
+						Filename: setting_test.TestDataPath("rules", "indentrule", "incorrect_issue_409.proto"),
+						Offset:   80,
+						Line:     6,
+						Column:   18,
+					},
+					"INDENT",
+					string(rule.SeverityError),
+					`Found an incorrect indentation style "%s". "%s" is correct.`,
+					"    ",
+					"  ",
+				),
+			},
+		},
+		{
+			name: `recommend a new line between a comment and the element it precedes on the same line.
+Fix https://github.com/yoheimuta/protolint/issues/409`,
+			inputProtoPath:     setting_test.TestDataPath("rules", "indentrule", "incorrect_issue_409.proto"),
+			inputInsertNewline: true,
+			wantFailures: []report.Failure{
+				report.Failuref(
+					meta.Position{
+						Filename: setting_test.TestDataPath("rules", "indentrule", "incorrect_issue_409.proto"),
+						Offset:   80,
+						Line:     6,
+						Column:   18,
+					},
+					"INDENT",
+					string(rule.SeverityError),
+					`Found a possible incorrect indentation style. Inserting a new line is recommended.`,
+				),
+				report.Failuref(
+					meta.Position{
+						Filename: setting_test.TestDataPath("rules", "indentrule", "incorrect_issue_409.proto"),
+						Offset:   67,
+						Line:     6,
+						Column:   5,
+					},
+					"INDENT",
+					string(rule.SeverityError),
+					`Found a possible incorrect indentation style. Inserting a new line is recommended.`,
+				),
+			},
+		},
+		{
 			name: `handle the case that the proto has a mixture of line ending formats like LF and CRLF.
 Fix https://github.com/yoheimuta/protolint/issues/280`,
 			inputProtoPath: setting_test.TestDataPath("rules", "indentrule", "issue_280_mix_lineending.proto"),
@@ -378,6 +428,24 @@ func TestIndentRule_Apply_fix(t *testing.T) {
 		return
 	}
 
+	incorrectIssue409Path, err := newTestIndentData("incorrect_issue_409.proto")
+	if err != nil {
+		t.Errorf("got err %v", err)
+		return
+	}
+
+	correctIssue409Path, err := newTestIndentData("issue_409.proto")
+	if err != nil {
+		t.Errorf("got err %v", err)
+		return
+	}
+
+	correctIssue409InsertPath, err := newTestIndentData("issue_409_insert_linebreaks.proto")
+	if err != nil {
+		t.Errorf("got err %v", err)
+		return
+	}
+
 	tests := []struct {
 		name               string
 		inputTestData      util_test.TestData
@@ -434,6 +502,17 @@ func TestIndentRule_Apply_fix(t *testing.T) {
 			inputTestData:      incorrectIssue139Path,
 			inputInsertNewline: true,
 			wantCorrectData:    correctIssue139InsertPath,
+		},
+		{
+			name:            "re-indent a line that starts with a comment attached to its element. Fix https://github.com/yoheimuta/protolint/issues/409",
+			inputTestData:   incorrectIssue409Path,
+			wantCorrectData: correctIssue409Path,
+		},
+		{
+			name:               "insert a linebreak between a comment and the element it precedes on the same line. Fix https://github.com/yoheimuta/protolint/issues/409",
+			inputTestData:      incorrectIssue409Path,
+			inputInsertNewline: true,
+			wantCorrectData:    correctIssue409InsertPath,
 		},
 	}
 
