@@ -349,7 +349,10 @@ func (v indentVisitor) validateIndent(
 	if 1 < len(v.indentFixes[pos.Line-1]) && v.notInsertNewline {
 		return
 	}
-	if len(v.indentFixes[pos.Line-1]) == 1 && judgedByLineIndent {
+	// Only the element that starts the line owns its indentation, whichever of
+	// the line's elements happens to be visited first. The others are told to
+	// move to a line of their own (see issue #349).
+	if judgedByLineIndent {
 		v.AddFailuref(
 			pos,
 			`Found an incorrect indentation style "%s". "%s" is correct.`,

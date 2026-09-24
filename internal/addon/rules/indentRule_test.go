@@ -274,7 +274,61 @@ Fix https://github.com/yoheimuta/protolint/issues/409`,
 					},
 					"INDENT",
 					string(rule.SeverityError),
+					`Found an incorrect indentation style "%s". "%s" is correct.`,
+					"    ",
+					"  ",
+				),
+			},
+		},
+		{
+			name: `measure a line's indentation up to its first element, not across a comment before it.
+Fix https://github.com/yoheimuta/protolint/issues/349`,
+			inputProtoPath: setting_test.TestDataPath("rules", "indentrule", "incorrect_issue_349.proto"),
+			wantFailures: []report.Failure{
+				report.Failuref(
+					meta.Position{
+						Filename: setting_test.TestDataPath("rules", "indentrule", "incorrect_issue_349.proto"),
+						Offset:   51,
+						Line:     3,
+						Column:   32,
+					},
+					"INDENT",
+					string(rule.SeverityError),
+					`Found an incorrect indentation style "%s". "%s" is correct.`,
+					"  ",
+					"",
+				),
+			},
+		},
+		{
+			name: `report the indentation on the element that starts the line and a new line for the one after it.
+Fix https://github.com/yoheimuta/protolint/issues/349`,
+			inputProtoPath:     setting_test.TestDataPath("rules", "indentrule", "incorrect_issue_349.proto"),
+			inputInsertNewline: true,
+			wantFailures: []report.Failure{
+				report.Failuref(
+					meta.Position{
+						Filename: setting_test.TestDataPath("rules", "indentrule", "incorrect_issue_349.proto"),
+						Offset:   51,
+						Line:     3,
+						Column:   32,
+					},
+					"INDENT",
+					string(rule.SeverityError),
 					`Found a possible incorrect indentation style. Inserting a new line is recommended.`,
+				),
+				report.Failuref(
+					meta.Position{
+						Filename: setting_test.TestDataPath("rules", "indentrule", "incorrect_issue_349.proto"),
+						Offset:   22,
+						Line:     3,
+						Column:   3,
+					},
+					"INDENT",
+					string(rule.SeverityError),
+					`Found an incorrect indentation style "%s". "%s" is correct.`,
+					"  ",
+					"",
 				),
 			},
 		},
